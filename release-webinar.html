@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hypersoft · Release Webinar</title>
+<style>
+  :root{
+    --red:#dd0930; --red-dark:#b0072688; --dark:#14181f; --ink:#1c1c1c;
+    --panel:#1b2230; --panel2:#232d3f; --line:#33405a; --txt:#e8edf6;
+    --muted:#9fb0cc; --white:#ffffff;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:#0c0f16;color:var(--txt);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    font-size:14px;overflow:hidden;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit}
+
+  /* ---------- Layout ---------- */
+  #app{display:flex;flex-direction:column;height:100vh}
+  #topbar{display:flex;align-items:center;gap:14px;padding:8px 14px;
+    background:#0f1420;border-bottom:1px solid var(--line);flex:0 0 auto;z-index:30}
+  #topbar .brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.3px}
+  #topbar .brand .logo{width:16px;height:16px;transform:rotate(45deg);
+    background:var(--red);border-radius:2px;box-shadow:5px 5px 0 -1px var(--red), -5px -5px 0 -1px var(--red)}
+  #topbar .spacer{flex:1}
+  #topbar .grp{display:flex;align-items:center;gap:6px}
+  .tb{background:var(--panel);border:1px solid var(--line);color:var(--txt);
+    padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:.12s}
+  .tb:hover{border-color:#4a5f86;background:var(--panel2)}
+  .tb.on{background:var(--red);border-color:var(--red);color:#fff}
+  .tb.ghost{background:transparent}
+  .tb.icon{padding:7px 9px;min-width:34px;text-align:center}
+  .counter{min-width:56px;text-align:center;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  #main{flex:1;display:flex;min-height:0}
+  #stageArea{flex:1;position:relative;overflow:hidden;background:#0c0f16;
+    background-image:radial-gradient(circle at 50% 40%, #182031 0, #0c0f16 70%)}
+
+  /* ---------- Stage (1280x720) ---------- */
+  #stageWrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(var(--scale,1));
+    transform-origin:center center}
+  #stage{position:relative;width:1280px;height:720px;overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.6);background:#111}
+  .el{position:absolute;white-space:pre-wrap;word-break:break-word}
+  .el.text{display:flex;padding:6px 8px}
+  .el.text .inner{width:100%}
+  .el.image{overflow:hidden;background:#20293a}
+  .el.image img{width:100%;height:100%;display:block}
+  .el.image .ph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:8px;color:#7f92b3;font-size:15px;
+    background:repeating-linear-gradient(45deg,#1d2636 0 12px,#212b3d 12px 24px)}
+  .el.image .ph svg{opacity:.6}
+  .el.button{display:flex;align-items:center;justify-content:center;text-align:center;
+    cursor:pointer;text-decoration:none;font-weight:700;user-select:none}
+  .el.shape{}
+
+  /* edit affordances */
+  #stage.edit .el{outline:1px dashed transparent}
+  #stage.edit .el:hover{outline:1px dashed #6f86ff88}
+  .el.selected{outline:2px solid var(--red) !important}
+  .el.editing{outline:2px solid #4f8cff !important;cursor:text}
+  .handle{position:absolute;width:12px;height:12px;background:#fff;border:2px solid var(--red);
+    border-radius:50%;z-index:10}
+  .handle.nw{cursor:nwse-resize}.handle.ne{cursor:nesw-resize}
+  .handle.sw{cursor:nesw-resize}.handle.se{cursor:nwse-resize}
+  .handle.n{cursor:ns-resize}.handle.s{cursor:ns-resize}
+  .handle.e{cursor:ew-resize}.handle.w{cursor:ew-resize}
+
+  /* ---------- Sidebars ---------- */
+  .side{background:#0f1420;border-left:1px solid var(--line);flex:0 0 auto;
+    display:flex;flex-direction:column;min-height:0}
+  #leftSide{width:210px;border-left:none;border-right:1px solid var(--line)}
+  #rightSide{width:290px}
+  .side h3{margin:0;padding:11px 13px;font-size:12px;letter-spacing:.8px;text-transform:uppercase;
+    color:var(--muted);border-bottom:1px solid var(--line);position:sticky;top:0;background:#0f1420;z-index:2}
+  .side .body{overflow:auto;padding:11px;flex:1}
+  .hidden{display:none !important}
+
+  /* slide list */
+  .slideItem{position:relative;border:1px solid var(--line);border-radius:8px;margin-bottom:10px;
+    cursor:pointer;overflow:hidden;background:#141b28}
+  .slideItem.active{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}
+  .slideItem .thumbBox{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#111}
+  .slideItem .thumbStage{position:absolute;top:0;left:0;width:1280px;height:720px;transform-origin:top left}
+  .slideItem .cap{display:flex;align-items:center;gap:6px;padding:5px 8px;font-size:12px;color:var(--muted)}
+  .slideItem .cap .num{color:var(--red);font-weight:700}
+  .slideItem .cap .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt)}
+  .slideItem .rowbtn{opacity:0;position:absolute;top:5px;right:5px;display:flex;gap:4px;transition:.12s}
+  .slideItem:hover .rowbtn{opacity:1}
+  .miniBtn{width:22px;height:22px;border-radius:6px;border:1px solid var(--line);background:#0f1420cc;
+    color:var(--txt);cursor:pointer;font-size:12px;line-height:1;padding:0}
+  .miniBtn:hover{background:var(--red);border-color:var(--red)}
+
+  .addRow{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+  .addRow .tb{padding:8px 6px;font-size:12px;text-align:center}
+  .toolRow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .toolRow .tb{flex:1;min-width:64px;text-align:center;padding:8px 4px;font-size:12px}
+
+  /* properties */
+  .field{margin-bottom:12px}
+  .field > label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px;
+    text-transform:uppercase;letter-spacing:.5px}
+  .field input[type=text],.field input[type=url],.field textarea,.field select,.field input[type=number]{
+    width:100%;background:#0c111b;border:1px solid var(--line);color:var(--txt);
+    border-radius:7px;padding:7px 9px;font-size:13px;font-family:inherit}
+  .field textarea{min-height:64px;resize:vertical}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .styleBtns{display:flex;gap:6px}
+  .styleBtns .tb{flex:1;text-align:center}
+  .clr{display:flex;align-items:center;gap:8px}
+  .clr input[type=color]{width:38px;height:32px;padding:0;border:1px solid var(--line);
+    border-radius:7px;background:#0c111b;cursor:pointer}
+  .clr .hex{flex:1}
+  .zbtns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .danger{background:#3a1420;border-color:#7d2338;color:#ff9db0}
+  .danger:hover{background:var(--red);border-color:var(--red);color:#fff}
+  .hint{color:var(--muted);font-size:12px;line-height:1.5}
+  .empty{color:var(--muted);font-size:13px;text-align:center;padding:30px 10px;line-height:1.6}
+
+  /* ---------- Overview ---------- */
+  #overview{position:fixed;inset:0;background:#0a0d14ee;z-index:40;display:none;padding:40px;overflow:auto}
+  #overview.show{display:block}
+  #overview .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;max-width:1400px;margin:0 auto}
+  #overview .ovItem{cursor:pointer;border:2px solid transparent;border-radius:10px;overflow:hidden;background:#111}
+  #overview .ovItem:hover{border-color:var(--red)}
+  #overview .thumbBox{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden}
+  #overview .thumbStage{position:absolute;top:0;left:0;width:1280px;height:720px;transform-origin:top left}
+  #overview .lbl{padding:7px 10px;font-size:12.5px;color:var(--muted)}
+  #ovClose{position:fixed;top:20px;right:24px}
+
+  /* present navigation zones */
+  #navArrows{position:absolute;inset:0;pointer-events:none;z-index:20}
+  #navArrows .zone{position:absolute;top:0;bottom:0;width:14%;pointer-events:auto;cursor:pointer;
+    display:flex;align-items:center;opacity:0;transition:.15s}
+  #navArrows .zone:hover{opacity:1}
+  #navArrows .left{left:0;justify-content:flex-start;padding-left:14px}
+  #navArrows .right{right:0;justify-content:flex-end;padding-right:14px}
+  #navArrows .chev{width:44px;height:44px;border-radius:50%;background:#0009;color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:22px}
+  .presenting #topbar{transition:.2s}
+
+  /* toast */
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#0f1420;border:1px solid var(--line);border-left:3px solid var(--red);
+    padding:10px 16px;border-radius:8px;opacity:0;transition:.2s;z-index:60;pointer-events:none;font-size:13px}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <div class="brand"><span class="logo"></span><span>Hypersoft</span></div>
+    <span id="deckTitle" class="counter" style="min-width:auto;color:var(--txt);font-weight:600"></span>
+    <div class="spacer"></div>
+
+    <div class="grp" id="navGrp">
+      <button class="tb icon" id="prevBtn" title="Zurück (←)">‹</button>
+      <span class="counter" id="counter">1 / 1</span>
+      <button class="tb icon" id="nextBtn" title="Weiter (→)">›</button>
+      <button class="tb ghost icon" id="ovBtn" title="Übersicht (O)">▦</button>
+      <button class="tb ghost icon" id="fsBtn" title="Vollbild (F)">⤢</button>
+    </div>
+
+    <div class="grp">
+      <button class="tb" id="modeBtn" title="Bearbeiten / Präsentieren (E)">Bearbeiten</button>
+    </div>
+    <div class="grp editOnly">
+      <button class="tb ghost" id="saveBtn" title="Als JSON-Datei sichern">Sichern</button>
+      <button class="tb ghost" id="loadBtn" title="JSON-Datei laden">Laden</button>
+      <button class="tb ghost" id="exportBtn" title="Als eigenständige HTML archivieren">HTML</button>
+      <button class="tb ghost" id="deckBtn" title="Webinar-Einstellungen">⚙</button>
+    </div>
+  </div>
+
+  <div id="main">
+    <div class="side editOnly" id="leftSide">
+      <h3>Folien</h3>
+      <div class="body">
+        <div id="slideList"></div>
+        <div class="addRow" id="addSlideRow"></div>
+      </div>
+    </div>
+
+    <div id="stageArea">
+      <div id="stageWrap"><div id="stage"></div></div>
+      <div id="navArrows">
+        <div class="zone left"  id="zoneL"><div class="chev">‹</div></div>
+        <div class="zone right" id="zoneR"><div class="chev">›</div></div>
+      </div>
+    </div>
+
+    <div class="side editOnly" id="rightSide">
+      <h3 id="propTitle">Eigenschaften</h3>
+      <div class="body" id="propBody"></div>
+    </div>
+  </div>
+</div>
+
+<div id="overview"><button class="tb" id="ovClose">Schließen ✕</button><div class="grid" id="ovGrid"></div></div>
+<div id="toast"></div>
+
+<!-- Deck-Daten für archivierte HTML-Exporte (beim Live-Bearbeiten leer) -->
+<script id="deck-data" type="application/json"></script>
+
+<script>
+"use strict";
+/* ============================================================
+   Hypersoft Release-Webinar · interaktive Folien
+   Einzeldatei-App · datengetrieben · offline-fähig
+   ============================================================ */
+
+const STAGE_W = 1280, STAGE_H = 720;
+const LS_KEY = "hs_webinar_deck_v1";
+const FONTS = ["Segoe UI","Arial","Arial Narrow","Verdana","Tahoma","Georgia",
+               "Times New Roman","Trebuchet MS","Impact","Courier New"];
+
+const uid = () => "e" + Math.random().toString(36).slice(2,9);
+const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
+const $ = s => document.querySelector(s);
+
+/* ---------- Default-Deck (Beispielinhalte aus Q3-PDF) ---------- */
+function txt(o){ return Object.assign({
+  id:uid(), type:"text", x:80,y:80,w:400,h:80, content:"Text",
+  font:"Segoe UI", size:28, bold:false, italic:false, underline:false,
+  color:"#ffffff", align:"left", valign:"top", lineh:1.25, spacing:0,
+  bg:"", radius:0, pad:6
+}, o); }
+function shape(o){ return Object.assign({
+  id:uid(), type:"shape", x:0,y:0,w:200,h:80, bg:"#dd0930", radius:0, opacity:1, border:""
+}, o); }
+function image(o){ return Object.assign({
+  id:uid(), type:"image", x:80,y:80,w:360,h:240, src:"", fit:"cover", radius:8, border:""
+}, o); }
+function button(o){ return Object.assign({
+  id:uid(), type:"button", x:80,y:600,w:280,h:56,
+  label:"Im Produkt zeigen  →", url:"https://", target:true,
+  bg:"#dd0930", color:"#ffffff", size:20, radius:8, bold:true, border:""
+}, o); }
+
+function defaultDeck(){
+  return {
+    meta:{ title:"Release Webinar", quarter:"2026_Q3",
+           subtitle:"Hypersoft · Gastronomie im Fokus" },
+    slides:[
+      // 1 — Titel
+      { id:uid(), name:"Titel",
+        bg:{type:"gradient", from:"#1a1f2b", to:"#3a0d1a", angle:135}, overlay:0,
+        els:[
+          txt({x:120,y:300,w:600,h:60, content:"◆ Hypersoft", size:40, bold:true, color:"#ffffff"}),
+          txt({x:120,y:360,w:900,h:150, content:"Release Webinar 2026_Q3", size:76, bold:true, color:"#ffffff"}),
+          shape({x:120,y:340,w:90,h:8, bg:"#dd0930"})
+        ]},
+      // 2 — Agenda
+      { id:uid(), name:"Agenda",
+        bg:{type:"color", from:"#14181f"}, overlay:0,
+        els:[
+          shape({x:120,y:90,w:1040,h:60, bg:"#dd0930", radius:4}),
+          txt({x:120,y:90,w:1040,h:60, content:"AGENDA", size:30, bold:true, color:"#ffffff", align:"center", valign:"center"}),
+          txt({x:180,y:200,w:920,h:56, content:"2026_Q3 Release-Inhalte", size:26, bold:true, color:"#ffffff", bg:"#1e2635", radius:6, valign:"center", pad:16}),
+          txt({x:180,y:272,w:920,h:56, content:"Update ePOS mobilePRO", size:26, bold:true, color:"#ffffff", bg:"#1e2635", radius:6, valign:"center", pad:16}),
+          txt({x:180,y:344,w:920,h:56, content:"Ausblick 26 / 27", size:26, bold:true, color:"#ffffff", bg:"#1e2635", radius:6, valign:"center", pad:16}),
+          txt({x:180,y:416,w:920,h:56, content:"Release-Termine 26 / 27", size:26, bold:true, color:"#ffffff", bg:"#1e2635", radius:6, valign:"center", pad:16}),
+          txt({x:180,y:488,w:920,h:56, content:"Fragen & Informationen", size:26, bold:true, color:"#ffffff", bg:"#1e2635", radius:6, valign:"center", pad:16})
+        ]},
+      // 3 — Release-Inhalte (2 Spalten) + Produkt-Button
+      { id:uid(), name:"Bonuspunkte auf Cent-Ebene",
+        bg:{type:"color", from:"#f4f5f7"}, overlay:0,
+        els:[
+          txt({x:80,y:44,w:1120,h:60, content:"Release-Inhalte – 2026_Q3", size:44, bold:true, color:"#1c1c1c", align:"center"}),
+          shape({x:80,y:150,w:530,h:470, bg:"#ffffff", radius:10, border:"1px solid #e2e5ea"}),
+          txt({x:110,y:175,w:470,h:44, content:"Neue Vergabe der Bonuspunkte auf Cent-Ebene", size:22, bold:true, color:"#1c1c1c"}),
+          txt({x:110,y:230,w:470,h:120, content:"Mehr Spielraum für Ihre Bonusstrategie: Punkte lassen sich jetzt nicht mehr nur für ganze Euro, sondern auch auf Cent-Ebene vergeben – ob 0,50 € oder 0,01 €.", size:16, color:"#33383f", lineh:1.4}),
+          image({x:110,y:360,w:470,h:230, src:"", fit:"cover", radius:8}),
+          shape({x:650,y:150,w:530,h:470, bg:"#ffffff", radius:10, border:"1px solid #e2e5ea"}),
+          txt({x:680,y:175,w:470,h:44, content:'Widerruf-Button im Webshop', size:22, bold:true, color:"#1c1c1c"}),
+          txt({x:680,y:230,w:470,h:120, content:"Ab dem 19. Juni 2026 schreibt die EU-Richtlinie 2023/2673 einen gut sichtbaren Widerrufsbutton für widerrufsfähige Produkte vor – v. a. beim Gutscheinverkauf über Webshop und YourApp.", size:16, color:"#33383f", lineh:1.4}),
+          image({x:680,y:360,w:470,h:230, src:"", fit:"cover", radius:8}),
+          button({x:80,y:648,w:300,h:52, label:"Bonus-Einstellungen zeigen →", url:"https://mcp.hypersoft.de", size:17})
+        ]},
+      // 4 — Ausblick Raster
+      { id:uid(), name:"Ausblick",
+        bg:{type:"color", from:"#14181f"}, overlay:0,
+        els:[
+          txt({x:80,y:44,w:1120,h:60, content:"Ausblick – 2026 | 2027", size:44, bold:true, color:"#ffffff", align:"center"}),
+          ...tileGrid([
+            "Weiterentwicklung der Loyalty-Funktionen","UX / UI Modernisierung Portal & MCP",
+            "QR-Code zur User-Identifikation","ePOS mobilePRO auf iOS Consumer-Hardware",
+            "Neue Datev Cloud API","NoCOO mit Bewirtungsbeleg",
+            "Order Channel am POS managen","Digital Signage API"
+          ])
+        ]},
+      // 5 — Termine
+      { id:uid(), name:"Release-Termine",
+        bg:{type:"color", from:"#14181f"}, overlay:0,
+        els:[
+          txt({x:80,y:44,w:1120,h:60, content:"Release-Termine 26 / 27", size:44, bold:true, color:"#ffffff", align:"center"}),
+          ...dateCards([
+            ["2026_Q3","Dienstag","23. Juni 2026"],
+            ["2026_Q4","Dienstag","06. Oktober 2026"],
+            ["2027_Q1","Dienstag","26. Januar 2027"],
+            ["2027_Q2","","April–Mai 2027"]
+          ])
+        ]},
+      // 6 — Abschluss
+      { id:uid(), name:"Abschluss",
+        bg:{type:"gradient", from:"#3a0d1a", to:"#14181f", angle:135}, overlay:0,
+        els:[
+          txt({x:120,y:280,w:1040,h:120, content:"Vielen Dank für Ihre Aufmerksamkeit!", size:60, bold:true, color:"#ffffff"}),
+          shape({x:120,y:270,w:90,h:8, bg:"#dd0930"}),
+          txt({x:120,y:430,w:1040,h:60, content:"Hypersoft · Gastronomie im Fokus", size:24, color:"#c9d3e2"})
+        ]}
+    ]
+  };
+}
+function tileGrid(labels){
+  const els=[]; const cols=4, gapX=24, gapY=24, x0=80, y0=170, w=(1120-gapX*3)/cols, h=190;
+  labels.forEach((l,i)=>{
+    const c=i%cols, r=Math.floor(i/cols);
+    const x=x0+c*(w+gapX), y=y0+r*(h+gapY);
+    els.push(shape({x,y,w,h, bg:"#1e2635", radius:10, border:"1px solid #2c3648"}));
+    els.push(txt({x,y,w,h, content:l, size:20, bold:true, color:"#ffffff", align:"center", valign:"center", pad:14}));
+  });
+  return els;
+}
+function dateCards(items){
+  const els=[]; const cols=4, gapX=22, x0=80, y0=190, w=(1120-gapX*3)/cols, h=320;
+  items.forEach((it,i)=>{
+    const x=x0+i*(w+gapX), y=y0;
+    els.push(shape({x,y,w,h, bg:"#1e2635", radius:12, border:"2px solid #dd0930"}));
+    els.push(txt({x,y:y+40,w,h:50, content:it[0], size:30, bold:true, color:"#ffffff", align:"center"}));
+    els.push(txt({x,y:y+150,w,h:40, content:it[1], size:20, bold:true, color:"#dd0930", align:"center"}));
+    els.push(txt({x,y:y+200,w,h:40, content:it[2], size:20, color:"#c9d3e2", align:"center"}));
+  });
+  return els;
+}
+
+/* ---------- State ---------- */
+let deck, cur=0, mode="present", selId=null, editingId=null, scale=1;
+
+function loadDeck(){
+  try{
+    const embedded = $("#deck-data").textContent.trim();
+    if(embedded){ deck = JSON.parse(embedded); return; }
+  }catch(e){}
+  try{
+    const ls = localStorage.getItem(LS_KEY);
+    if(ls){ deck = JSON.parse(ls); return; }
+  }catch(e){}
+  deck = defaultDeck();
+}
+function saveDeck(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(deck)); }catch(e){ toast("Speichern fehlgeschlagen (Speicher voll?)"); }
+}
+const slide = () => deck.slides[cur];
+const findEl = id => slide().els.find(e=>e.id===id);
+
+/* ---------- Rendering ---------- */
+function bgCss(bg){
+  if(!bg) return "#111";
+  if(bg.type==="gradient") return `linear-gradient(${bg.angle||135}deg, ${bg.from}, ${bg.to})`;
+  if(bg.type==="image" && bg.src) return `#111 url("${bg.src}") center/cover no-repeat`;
+  return bg.from || "#111";
+}
+function elCss(el){
+  const s = {position:"absolute", left:el.x+"px", top:el.y+"px", width:el.w+"px", height:el.h+"px"};
+  if(el.type==="text"){
+    Object.assign(s,{
+      fontFamily:`"${el.font}", sans-serif`, fontSize:el.size+"px",
+      fontWeight:el.bold?"700":"400", fontStyle:el.italic?"italic":"normal",
+      textDecoration:el.underline?"underline":"none",
+      color:el.color, textAlign:el.align, lineHeight:el.lineh,
+      letterSpacing:(el.spacing||0)+"px",
+      alignItems: el.valign==="center"?"center":(el.valign==="bottom"?"flex-end":"flex-start"),
+      justifyContent: el.align==="center"?"center":(el.align==="right"?"flex-end":"flex-start"),
+      background:el.bg||"transparent", borderRadius:(el.radius||0)+"px", padding:(el.pad||0)+"px"
+    });
+  } else if(el.type==="shape"){
+    Object.assign(s,{background:el.bg, borderRadius:(el.radius||0)+"px", opacity:el.opacity??1, border:el.border||"none"});
+  } else if(el.type==="image"){
+    Object.assign(s,{borderRadius:(el.radius||0)+"px", border:el.border||"none"});
+  } else if(el.type==="button"){
+    Object.assign(s,{background:el.bg, color:el.color, fontSize:el.size+"px",
+      borderRadius:(el.radius||0)+"px", fontWeight:el.bold?"700":"600", border:el.border||"none"});
+  }
+  return s;
+}
+function buildEl(el){
+  const d = document.createElement(el.type==="button" && mode==="present" ? "a" : "div");
+  d.className = "el "+el.type;
+  d.dataset.id = el.id;
+  Object.assign(d.style, elCss(el));
+  if(el.type==="text"){
+    const inner=document.createElement("div"); inner.className="inner"; inner.textContent=el.content;
+    // valign via flex already; put text in inner but keep alignment: use direct text
+    d.textContent = el.content;
+  } else if(el.type==="image"){
+    if(el.src){ const img=document.createElement("img"); img.src=el.src; img.style.objectFit=el.fit; d.appendChild(img); }
+    else {
+      const ph=document.createElement("div"); ph.className="ph";
+      ph.innerHTML='<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>Bild hinzufügen</span>';
+      d.appendChild(ph);
+    }
+  } else if(el.type==="button"){
+    d.textContent = el.label;
+    if(mode==="present"){ d.href=el.url||"#"; if(el.target) d.target="_blank"; d.rel="noopener"; }
+  }
+  return d;
+}
+function renderStage(){
+  const st = $("#stage");
+  const sl = slide();
+  st.style.background = bgCss(sl.bg);
+  st.className = "stage" + (mode==="edit" ? " edit" : "");
+  st.innerHTML = "";
+  // overlay
+  if(sl.overlay){ const ov=document.createElement("div");
+    ov.style.cssText=`position:absolute;inset:0;background:#000;opacity:${sl.overlay};pointer-events:none`; st.appendChild(ov); }
+  sl.els.forEach(el=> st.appendChild(buildEl(el)));
+  if(mode==="edit" && selId){ const node=st.querySelector(`[data-id="${selId}"]`);
+    if(node){ node.classList.add("selected"); addHandles(node, findEl(selId)); } else selId=null; }
+  $("#counter").textContent = (cur+1)+" / "+deck.slides.length;
+  $("#deckTitle").textContent = deck.meta.title+" "+deck.meta.quarter;
+}
+function addHandles(node, el){
+  ["nw","n","ne","e","se","s","sw","w"].forEach(pos=>{
+    const h=document.createElement("div"); h.className="handle "+pos; h.dataset.h=pos;
+    const map={nw:[0,0],n:[.5,0],ne:[1,0],e:[1,.5],se:[1,1],s:[.5,1],sw:[0,1],w:[0,.5]}[pos];
+    h.style.left = (el.w*map[0]-6)+"px"; h.style.top=(el.h*map[1]-6)+"px";
+    node.appendChild(h);
+  });
+}
+function fitScale(){
+  const area=$("#stageArea"); const pad = mode==="edit"?40:24;
+  scale = Math.min((area.clientWidth-pad)/STAGE_W, (area.clientHeight-pad)/STAGE_H);
+  $("#stageWrap").style.setProperty("--scale", scale);
+}
+
+/* ---------- Sidebar: Folienliste ---------- */
+function renderSlideList(){
+  const list=$("#slideList"); list.innerHTML="";
+  deck.slides.forEach((sl,i)=>{
+    const it=document.createElement("div"); it.className="slideItem"+(i===cur?" active":"");
+    const box=document.createElement("div"); box.className="thumbBox";
+    box.appendChild(makeThumb(sl, box));
+    const cap=document.createElement("div"); cap.className="cap";
+    cap.innerHTML=`<span class="num">${i+1}</span><span class="nm">${escapeHtml(sl.name||"Folie")}</span>`;
+    const rb=document.createElement("div"); rb.className="rowbtn";
+    rb.innerHTML=`<button class="miniBtn" data-a="up" title="nach oben">▲</button>
+                  <button class="miniBtn" data-a="down" title="nach unten">▼</button>
+                  <button class="miniBtn" data-a="dup" title="duplizieren">⧉</button>
+                  <button class="miniBtn" data-a="del" title="löschen">✕</button>`;
+    rb.querySelectorAll("button").forEach(b=> b.onclick=(ev)=>{ev.stopPropagation(); slideAction(b.dataset.a,i);});
+    it.append(box,cap,rb);
+    it.onclick=()=>{ goto(i); };
+    list.appendChild(it);
+  });
+}
+function makeThumb(sl, box){
+  // Skalierte, nicht-interaktive Mini-Bühne
+  const w = box.clientWidth || 180; const s = w/STAGE_W;
+  const wrap=document.createElement("div"); wrap.className="thumbStage";
+  wrap.style.transform=`scale(${s})`;
+  wrap.style.background=bgCss(sl.bg);
+  if(sl.overlay){ const ov=document.createElement("div"); ov.style.cssText=`position:absolute;inset:0;background:#000;opacity:${sl.overlay}`; wrap.appendChild(ov);}
+  const prevMode=mode; mode="thumb";
+  sl.els.forEach(el=> wrap.appendChild(buildEl(el)));
+  mode=prevMode;
+  // recompute scale once box has real width
+  requestAnimationFrame(()=>{ const rw=box.clientWidth; if(rw) wrap.style.transform=`scale(${rw/STAGE_W})`; });
+  return wrap;
+}
+function slideAction(a,i){
+  if(a==="up" && i>0){ [deck.slides[i-1],deck.slides[i]]=[deck.slides[i],deck.slides[i-1]]; if(cur===i)cur=i-1; else if(cur===i-1)cur=i; }
+  else if(a==="down" && i<deck.slides.length-1){ [deck.slides[i+1],deck.slides[i]]=[deck.slides[i],deck.slides[i+1]]; if(cur===i)cur=i+1; else if(cur===i+1)cur=i; }
+  else if(a==="dup"){ const copy=JSON.parse(JSON.stringify(deck.slides[i])); copy.id=uid(); copy.name=(copy.name||"Folie")+" (Kopie)"; copy.els.forEach(e=>e.id=uid()); deck.slides.splice(i+1,0,copy); }
+  else if(a==="del"){ if(deck.slides.length<=1){toast("Mindestens eine Folie nötig");return;} if(!confirm("Folie löschen?"))return; deck.slides.splice(i,1); if(cur>=deck.slides.length)cur=deck.slides.length-1; }
+  selId=null; commit();
+}
+
+/* ---------- Neue Folie: Layout-Vorlagen ---------- */
+const LAYOUTS = {
+  "Leer": ()=>({els:[]}),
+  "Titel": ()=>({els:[
+    txt({x:120,y:300,w:600,h:60, content:"◆ Hypersoft", size:40, bold:true, color:"#ffffff"}),
+    txt({x:120,y:360,w:900,h:150, content:"Titel der Folie", size:72, bold:true, color:"#ffffff"}),
+    shape({x:120,y:340,w:90,h:8, bg:"#dd0930"})], bg:{type:"gradient",from:"#1a1f2b",to:"#3a0d1a",angle:135}}),
+  "Inhalt": ()=>({els:[
+    txt({x:80,y:44,w:1120,h:60, content:"Release-Inhalte – "+deck.meta.quarter, size:44, bold:true, color:"#1c1c1c", align:"center"}),
+    shape({x:80,y:150,w:530,h:470, bg:"#ffffff", radius:10, border:"1px solid #e2e5ea"}),
+    txt({x:110,y:175,w:470,h:44, content:"Funktion 1", size:22, bold:true, color:"#1c1c1c"}),
+    txt({x:110,y:230,w:470,h:120, content:"Kurze Beschreibung der Funktion …", size:16, color:"#33383f", lineh:1.4}),
+    image({x:110,y:360,w:470,h:230}),
+    shape({x:650,y:150,w:530,h:470, bg:"#ffffff", radius:10, border:"1px solid #e2e5ea"}),
+    txt({x:680,y:175,w:470,h:44, content:"Funktion 2", size:22, bold:true, color:"#1c1c1c"}),
+    txt({x:680,y:230,w:470,h:120, content:"Kurze Beschreibung der Funktion …", size:16, color:"#33383f", lineh:1.4}),
+    image({x:680,y:360,w:470,h:230})], bg:{type:"color",from:"#f4f5f7"}}),
+  "Raster": ()=>({els:[
+    txt({x:80,y:44,w:1120,h:60, content:"Ausblick", size:44, bold:true, color:"#ffffff", align:"center"}),
+    ...tileGrid(["Thema 1","Thema 2","Thema 3","Thema 4","Thema 5","Thema 6","Thema 7","Thema 8"])],
+    bg:{type:"color",from:"#14181f"}}),
+  "Abschluss": ()=>({els:[
+    txt({x:120,y:280,w:1040,h:120, content:"Vielen Dank!", size:60, bold:true, color:"#ffffff"}),
+    shape({x:120,y:270,w:90,h:8, bg:"#dd0930"})], bg:{type:"gradient",from:"#3a0d1a",to:"#14181f",angle:135}})
+};
+function renderAddRow(){
+  const row=$("#addSlideRow"); row.innerHTML="";
+  Object.keys(LAYOUTS).forEach(name=>{
+    const b=document.createElement("button"); b.className="tb"; b.textContent="+ "+name;
+    b.onclick=()=> addSlide(name);
+    row.appendChild(b);
+  });
+}
+function addSlide(layout){
+  const base=LAYOUTS[layout]();
+  const sl={ id:uid(), name:layout, bg: base.bg||{type:"color",from:"#14181f"}, overlay:0, els: base.els };
+  deck.slides.splice(cur+1,0,sl); cur++; selId=null; commit();
+}
+
+/* ---------- Eigenschaften-Panel ---------- */
+function renderProps(){
+  const body=$("#propBody");
+  const el = selId ? findEl(selId) : null;
+  if(!el){
+    // Folien-Eigenschaften
+    const sl=slide();
+    body.innerHTML="";
+    $("#propTitle").textContent="Folie";
+    body.appendChild(fieldText("Name der Folie", sl.name||"", v=>{sl.name=v; renderSlideList();}));
+    const bgType=sl.bg?.type||"color";
+    body.appendChild(fieldSelect("Hintergrund-Typ", ["color","gradient","image"], bgType, v=>{
+      if(v==="color") sl.bg={type:"color",from:sl.bg?.from||"#14181f"};
+      else if(v==="gradient") sl.bg={type:"gradient",from:sl.bg?.from||"#1a1f2b",to:"#3a0d1a",angle:135};
+      else sl.bg={type:"image",src:sl.bg?.src||""};
+      commit(); renderProps();
+    }));
+    if(bgType==="color") body.appendChild(fieldColor("Farbe", sl.bg.from, v=>{sl.bg.from=v; softCommit();}));
+    if(bgType==="gradient"){
+      body.appendChild(fieldColor("Farbe oben", sl.bg.from, v=>{sl.bg.from=v; softCommit();}));
+      body.appendChild(fieldColor("Farbe unten", sl.bg.to, v=>{sl.bg.to=v; softCommit();}));
+      body.appendChild(fieldNumber("Winkel°", sl.bg.angle, v=>{sl.bg.angle=+v; softCommit();}));
+    }
+    if(bgType==="image"){
+      body.appendChild(fieldImageUpload("Hintergrundbild", sl.bg.src, dataUrl=>{sl.bg.src=dataUrl; commit();}));
+    }
+    body.appendChild(fieldNumber("Verdunkelung (0–1)", sl.overlay||0, v=>{sl.overlay=clamp(+v,0,1); softCommit();}, .05));
+    const hint=document.createElement("div"); hint.className="hint";
+    hint.style.marginTop="14px";
+    hint.innerHTML="Klicke ein Element auf der Folie an, um es zu bearbeiten.<br>Oder füge über die Werkzeuge oben eines hinzu.";
+    body.appendChild(toolButtons());
+    body.appendChild(hint);
+    return;
+  }
+  $("#propTitle").textContent = ({text:"Text",image:"Bild",button:"Produkt-Button",shape:"Fläche"})[el.type];
+  body.innerHTML="";
+  body.appendChild(toolButtons());
+
+  if(el.type==="text"){
+    body.appendChild(fieldTextarea("Inhalt", el.content, v=>{el.content=v; softCommit();}));
+    body.appendChild(fieldSelect("Schriftart", FONTS, el.font, v=>{el.font=v; softCommit();}));
+    body.appendChild(row2(
+      fieldNumber("Größe (px)", el.size, v=>{el.size=+v; softCommit();}),
+      fieldNumber("Zeilenh.", el.lineh, v=>{el.lineh=+v; softCommit();}, .05)
+    ));
+    body.appendChild(fieldStyleToggles(el));
+    body.appendChild(fieldColor("Textfarbe", el.color, v=>{el.color=v; softCommit();}));
+    body.appendChild(fieldAlign(el));
+    body.appendChild(fieldColorOptional("Hintergrund", el.bg, v=>{el.bg=v; softCommit();}));
+    body.appendChild(row2(
+      fieldNumber("Radius", el.radius||0, v=>{el.radius=+v; softCommit();}),
+      fieldNumber("Innenabstand", el.pad||0, v=>{el.pad=+v; softCommit();})
+    ));
+  }
+  else if(el.type==="shape"){
+    body.appendChild(fieldColor("Farbe", el.bg, v=>{el.bg=v; softCommit();}));
+    body.appendChild(row2(
+      fieldNumber("Radius", el.radius||0, v=>{el.radius=+v; softCommit();}),
+      fieldNumber("Deckkraft", el.opacity??1, v=>{el.opacity=clamp(+v,0,1); softCommit();}, .05)
+    ));
+    body.appendChild(fieldText("Rahmen (CSS)", el.border||"", v=>{el.border=v; softCommit();}));
+  }
+  else if(el.type==="image"){
+    body.appendChild(fieldImageUpload("Bild", el.src, dataUrl=>{el.src=dataUrl; commit();}));
+    body.appendChild(fieldSelect("Anpassung", ["cover","contain","fill"], el.fit, v=>{el.fit=v; softCommit();}));
+    body.appendChild(fieldNumber("Radius", el.radius||0, v=>{el.radius=+v; softCommit();}));
+    body.appendChild(fieldText("Rahmen (CSS)", el.border||"", v=>{el.border=v; softCommit();}));
+  }
+  else if(el.type==="button"){
+    body.appendChild(fieldText("Beschriftung", el.label, v=>{el.label=v; softCommit();}));
+    body.appendChild(fieldText("Link (URL zum Produkt)", el.url, v=>{el.url=v; softCommit();}));
+    body.appendChild(fieldCheckbox("In neuem Tab öffnen", el.target, v=>{el.target=v; softCommit();}));
+    body.appendChild(row2(
+      fieldColor("Hintergrund", el.bg, v=>{el.bg=v; softCommit();}),
+      fieldColor("Textfarbe", el.color, v=>{el.color=v; softCommit();})
+    ));
+    body.appendChild(row2(
+      fieldNumber("Größe", el.size, v=>{el.size=+v; softCommit();}),
+      fieldNumber("Radius", el.radius||0, v=>{el.radius=+v; softCommit();})
+    ));
+  }
+
+  // Position/Größe
+  body.appendChild(sectionLabel("Position & Größe"));
+  body.appendChild(row2(
+    fieldNumber("X", Math.round(el.x), v=>{el.x=+v; softCommit();}),
+    fieldNumber("Y", Math.round(el.y), v=>{el.y=+v; softCommit();})
+  ));
+  body.appendChild(row2(
+    fieldNumber("Breite", Math.round(el.w), v=>{el.w=+v; softCommit();}),
+    fieldNumber("Höhe", Math.round(el.h), v=>{el.h=+v; softCommit();})
+  ));
+
+  // Aktionen
+  const z=document.createElement("div"); z.className="zbtns"; z.style.marginTop="6px";
+  z.innerHTML=`<button class="tb" data-a="front">In den Vordergrund</button>
+               <button class="tb" data-a="back">In den Hintergrund</button>
+               <button class="tb" data-a="dup">Duplizieren</button>
+               <button class="tb danger" data-a="del">Löschen</button>`;
+  z.querySelectorAll("button").forEach(b=> b.onclick=()=> elAction(b.dataset.a));
+  body.appendChild(z);
+}
+function toolButtons(){
+  const w=document.createElement("div"); w.className="toolRow";
+  [["text","+ Text"],["image","+ Bild"],["button","+ Button"],["shape","+ Fläche"]].forEach(([t,l])=>{
+    const b=document.createElement("button"); b.className="tb"; b.textContent=l; b.onclick=()=>addElement(t); w.appendChild(b);
+  });
+  return w;
+}
+function addElement(type){
+  const makers={text:txt,image:image,button:button,shape:shape};
+  const el = makers[type]({x:120,y:120});
+  if(type==="shape") el.w=300, el.h=120;
+  slide().els.push(el); selId=el.id; commit(); renderProps();
+}
+function elAction(a){
+  const sl=slide(); const i=sl.els.findIndex(e=>e.id===selId); if(i<0)return; const el=sl.els[i];
+  if(a==="front"){ sl.els.splice(i,1); sl.els.push(el); }
+  else if(a==="back"){ sl.els.splice(i,1); sl.els.unshift(el); }
+  else if(a==="dup"){ const c=JSON.parse(JSON.stringify(el)); c.id=uid(); c.x+=20; c.y+=20; sl.els.push(c); selId=c.id; }
+  else if(a==="del"){ sl.els.splice(i,1); selId=null; }
+  commit(); renderProps();
+}
+
+/* ---------- kleine Feld-Builder ---------- */
+function wrapField(label, control){
+  const f=document.createElement("div"); f.className="field";
+  const l=document.createElement("label"); l.textContent=label; f.append(l,control); return f;
+}
+function fieldText(label,val,on){ const i=document.createElement("input"); i.type="text"; i.value=val||""; i.oninput=()=>on(i.value); return wrapField(label,i); }
+function fieldTextarea(label,val,on){ const t=document.createElement("textarea"); t.value=val||""; t.oninput=()=>on(t.value); return wrapField(label,t); }
+function fieldNumber(label,val,on,step){ const i=document.createElement("input"); i.type="number"; i.value=val; if(step)i.step=step; i.oninput=()=>on(i.value); return wrapField(label,i); }
+function fieldSelect(label,opts,val,on){ const s=document.createElement("select");
+  opts.forEach(o=>{const op=document.createElement("option");op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});
+  s.onchange=()=>on(s.value); return wrapField(label,s); }
+function fieldCheckbox(label,val,on){ const wrap=document.createElement("label"); wrap.style.cssText="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--txt)";
+  const c=document.createElement("input"); c.type="checkbox"; c.checked=!!val; c.onchange=()=>on(c.checked);
+  wrap.append(c,document.createTextNode(label)); const f=document.createElement("div"); f.className="field"; f.appendChild(wrap); return f; }
+function fieldColor(label,val,on){
+  const wrap=document.createElement("div"); wrap.className="clr";
+  const c=document.createElement("input"); c.type="color"; c.value=toHex(val)||"#000000";
+  const h=document.createElement("input"); h.type="text"; h.className="hex"; h.value=val||"";
+  c.oninput=()=>{h.value=c.value; on(c.value);}; h.oninput=()=>{ if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(h.value)){c.value=h.value;} on(h.value); };
+  wrap.append(c,h); return wrapField(label,wrap);
+}
+function fieldColorOptional(label,val,on){
+  const f=fieldColor(label, val||"#000000", on);
+  const none=document.createElement("label"); none.style.cssText="display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-top:6px";
+  const c=document.createElement("input"); c.type="checkbox"; c.checked=!val || val==="transparent" || val==="";
+  c.onchange=()=>{ if(c.checked) on(""); else on(f.querySelector('input[type=color]').value); };
+  none.append(c,document.createTextNode("kein Hintergrund")); f.appendChild(none); return f;
+}
+function fieldImageUpload(label,val,on){
+  const f=document.createElement("div"); f.className="field";
+  const l=document.createElement("label"); l.textContent=label;
+  const btn=document.createElement("button"); btn.className="tb"; btn.style.width="100%"; btn.textContent = val?"Bild ersetzen …":"Bild auswählen …";
+  const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.style.display="none";
+  btn.onclick=()=>inp.click();
+  inp.onchange=()=>{ const file=inp.files[0]; if(!file)return;
+    const r=new FileReader(); r.onload=()=>on(r.result); r.readAsDataURL(file); };
+  f.append(l,btn,inp);
+  if(val){ const rm=document.createElement("button"); rm.className="tb ghost"; rm.style.cssText="width:100%;margin-top:6px"; rm.textContent="Bild entfernen"; rm.onclick=()=>on(""); f.appendChild(rm);
+    const prev=document.createElement("img"); prev.src=val; prev.style.cssText="width:100%;border-radius:6px;margin-top:8px;display:block"; f.appendChild(prev); }
+  return f;
+}
+function fieldStyleToggles(el){
+  const f=document.createElement("div"); f.className="field";
+  const l=document.createElement("label"); l.textContent="Stil"; f.appendChild(l);
+  const w=document.createElement("div"); w.className="styleBtns";
+  const mk=(txt,key,style)=>{ const b=document.createElement("button"); b.className="tb"+(el[key]?" on":""); b.style.fontStyle=style==="i"?"italic":""; b.style.textDecoration=style==="u"?"underline":""; if(style==="b")b.style.fontWeight="700"; b.textContent=txt; b.onclick=()=>{el[key]=!el[key]; softCommit(); renderProps();}; return b; };
+  w.append(mk("F","bold","b"),mk("K","italic","i"),mk("U","underline","u"));
+  f.appendChild(w); return f;
+}
+function fieldAlign(el){
+  const f=document.createElement("div"); f.className="field";
+  const l=document.createElement("label"); l.textContent="Ausrichtung"; f.appendChild(l);
+  const w=document.createElement("div"); w.className="styleBtns";
+  [["left","⬅"],["center","⬌"],["right","➡"]].forEach(([v,ic])=>{ const b=document.createElement("button"); b.className="tb"+(el.align===v?" on":""); b.textContent=ic; b.onclick=()=>{el.align=v; softCommit(); renderProps();}; w.appendChild(b); });
+  f.appendChild(w);
+  const w2=document.createElement("div"); w2.className="styleBtns"; w2.style.marginTop="6px";
+  [["top","↥"],["center","↔"],["bottom","↧"]].forEach(([v,ic])=>{ const b=document.createElement("button"); b.className="tb"+(el.valign===v?" on":""); b.textContent=ic; b.onclick=()=>{el.valign=v; softCommit(); renderProps();}; w2.appendChild(b); });
+  f.appendChild(w2); return f;
+}
+function row2(a,b){ const w=document.createElement("div"); w.className="row2"; w.append(a,b); return w; }
+function sectionLabel(t){ const d=document.createElement("div"); d.style.cssText="font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px;border-top:1px solid var(--line);padding-top:12px"; d.textContent=t; return d; }
+
+/* ---------- Commit-Helfer ---------- */
+function commit(){ saveDeck(); renderStage(); renderSlideList(); fitScale(); }
+// softCommit: nur Bühne aktualisieren (nicht die ganze Folienliste neu bauen -> flüssiger beim Tippen)
+let softTimer=null;
+function softCommit(){ renderStage(); clearTimeout(softTimer); softTimer=setTimeout(()=>{saveDeck(); renderSlideList();},400); }
+
+/* ---------- Navigation ---------- */
+function goto(i){ cur=clamp(i,0,deck.slides.length-1); selId=null; renderStage(); renderSlideList(); if(mode==="edit")renderProps(); }
+function next(){ goto(cur+1); }
+function prev(){ goto(cur-1); }
+
+/* ---------- Modus ---------- */
+function setMode(m){
+  mode=m; selId=null; editingId=null;
+  document.body.classList.toggle("presenting", m==="present");
+  document.querySelectorAll(".editOnly").forEach(e=> e.classList.toggle("hidden", m!=="present"?false:true));
+  // editOnly sichtbar nur im Edit-Modus:
+  document.querySelectorAll(".editOnly").forEach(e=> e.classList.toggle("hidden", m!=="edit"));
+  $("#navArrows").classList.toggle("hidden", m!=="present");
+  $("#modeBtn").textContent = m==="edit" ? "Präsentieren" : "Bearbeiten";
+  $("#modeBtn").classList.toggle("on", m==="edit");
+  renderStage(); renderSlideList(); renderProps(); fitScale();
+}
+
+/* ---------- Drag & Resize (Edit-Modus) ---------- */
+let drag=null;
+$("#stage").addEventListener("pointerdown", e=>{
+  if(mode!=="edit") return;
+  const handle = e.target.closest(".handle");
+  const elNode = e.target.closest(".el");
+  if(handle && selId){
+    const el=findEl(selId);
+    drag={mode:"resize", h:handle.dataset.h, sx:e.clientX, sy:e.clientY, o:{...el}, el};
+    e.preventDefault(); return;
+  }
+  if(elNode){
+    const id=elNode.dataset.id;
+    if(editingId && editingId!==id) stopEditing();
+    if(id!==selId){ selId=id; renderStage(); renderProps(); }
+    if(editingId===id) return; // im Texteditier-Modus nicht ziehen
+    const el=findEl(id);
+    drag={mode:"move", sx:e.clientX, sy:e.clientY, o:{...el}, el};
+    e.preventDefault();
+  } else {
+    // Klick auf leere Bühne -> Deselektieren
+    if(editingId) stopEditing();
+    if(selId){ selId=null; renderStage(); renderProps(); }
+  }
+});
+window.addEventListener("pointermove", e=>{
+  if(!drag) return;
+  const dx=(e.clientX-drag.sx)/scale, dy=(e.clientY-drag.sy)/scale;
+  const el=drag.el, o=drag.o;
+  if(drag.mode==="move"){ el.x=Math.round(o.x+dx); el.y=Math.round(o.y+dy); }
+  else{
+    const h=drag.h;
+    if(h.includes("e")) el.w=Math.max(20,Math.round(o.w+dx));
+    if(h.includes("s")) el.h=Math.max(20,Math.round(o.h+dy));
+    if(h.includes("w")){ el.w=Math.max(20,Math.round(o.w-dx)); el.x=Math.round(o.x+dx); }
+    if(h.includes("n")){ el.h=Math.max(20,Math.round(o.h-dy)); el.y=Math.round(o.y+dy); }
+  }
+  renderStage();
+});
+window.addEventListener("pointerup", ()=>{ if(drag){ drag=null; saveDeck(); renderSlideList(); renderProps(); } });
+
+/* ---------- Inline-Text-Editing ---------- */
+$("#stage").addEventListener("dblclick", e=>{
+  if(mode!=="edit") return;
+  const node=e.target.closest(".el.text"); if(!node) return;
+  const el=findEl(node.dataset.id); if(!el) return;
+  selId=el.id; editingId=el.id;
+  node.classList.add("editing"); node.classList.remove("selected");
+  node.querySelectorAll(".handle").forEach(h=>h.remove());
+  node.contentEditable="true"; node.focus();
+  document.execCommand && document.getSelection().selectAllChildren(node);
+  node.addEventListener("blur", finish, {once:true});
+  function finish(){ el.content=node.innerText; editingId=null; commit(); renderProps(); }
+});
+function stopEditing(){ const n=$("#stage").querySelector(".el.editing"); if(n){ const el=findEl(n.dataset.id); if(el)el.content=n.innerText; n.contentEditable="false"; } editingId=null; commit(); }
+
+/* ---------- Buttons klick im Präsentationsmodus (a-Tag erledigt das) ---------- */
+
+/* ---------- Übersicht ---------- */
+function openOverview(){
+  const grid=$("#ovGrid"); grid.innerHTML="";
+  deck.slides.forEach((sl,i)=>{
+    const it=document.createElement("div"); it.className="ovItem";
+    const box=document.createElement("div"); box.className="thumbBox";
+    box.appendChild(makeThumb(sl,box));
+    const lbl=document.createElement("div"); lbl.className="lbl"; lbl.textContent=(i+1)+" · "+(sl.name||"Folie");
+    it.append(box,lbl); it.onclick=()=>{ closeOverview(); goto(i); };
+    grid.appendChild(it);
+  });
+  $("#overview").classList.add("show");
+}
+function closeOverview(){ $("#overview").classList.remove("show"); }
+
+/* ---------- Sichern / Laden / Export ---------- */
+function download(name, content, type){ const b=new Blob([content],{type:type||"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); }
+function saveJson(){ download(`webinar-${deck.meta.quarter}.json`, JSON.stringify(deck,null,2)); toast("Als JSON gesichert"); }
+function loadJson(){ const inp=document.createElement("input"); inp.type="file"; inp.accept="application/json,.json";
+  inp.onchange=()=>{ const f=inp.files[0]; if(!f)return; const r=new FileReader();
+    r.onload=()=>{ try{ deck=JSON.parse(r.result); cur=0; selId=null; commit(); renderProps(); toast("Geladen"); }catch(e){ toast("Ungültige Datei"); } };
+    r.readAsText(f); }; inp.click(); }
+function exportHtml(){
+  $("#deck-data").textContent = JSON.stringify(deck);
+  const html = "<!doctype html>\n<html lang=\"de\">\n" + document.documentElement.innerHTML + "\n</html>";
+  $("#deck-data").textContent = ""; // lokale Instanz wieder leeren
+  download(`webinar-${deck.meta.quarter}.html`, html, "text/html");
+  toast("Eigenständige HTML archiviert");
+}
+function deckSettings(){
+  const t=prompt("Titel des Webinars:", deck.meta.title); if(t===null)return; deck.meta.title=t;
+  const q=prompt("Quartal / Untertitel (z. B. 2026_Q4):", deck.meta.quarter); if(q!==null)deck.meta.quarter=q;
+  commit();
+}
+
+/* ---------- Fullscreen ---------- */
+function toggleFs(){ if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }
+
+/* ---------- Hilfsfunktionen ---------- */
+function toHex(c){ if(!c)return ""; if(/^#([0-9a-f]{6})$/i.test(c))return c; if(/^#([0-9a-f]{3})$/i.test(c)){return "#"+c.slice(1).split("").map(x=>x+x).join("");} return ""; }
+function escapeHtml(s){ return (s||"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+let toastT=null;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),1900); }
+
+/* ---------- Events ---------- */
+$("#prevBtn").onclick=prev; $("#nextBtn").onclick=next;
+$("#zoneL").onclick=prev; $("#zoneR").onclick=next;
+$("#ovBtn").onclick=openOverview; $("#ovClose").onclick=closeOverview;
+$("#fsBtn").onclick=toggleFs;
+$("#modeBtn").onclick=()=> setMode(mode==="edit"?"present":"edit");
+$("#saveBtn").onclick=saveJson; $("#loadBtn").onclick=loadJson;
+$("#exportBtn").onclick=exportHtml; $("#deckBtn").onclick=deckSettings;
+window.addEventListener("resize", fitScale);
+
+document.addEventListener("keydown", e=>{
+  const inField = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.activeElement.isContentEditable;
+  if($("#overview").classList.contains("show")){ if(e.key==="Escape")closeOverview(); return; }
+  if(inField){ if(e.key==="Escape") document.activeElement.blur(); return; }
+  switch(e.key){
+    case "ArrowRight": case " ": case "PageDown": next(); e.preventDefault(); break;
+    case "ArrowLeft": case "PageUp": prev(); e.preventDefault(); break;
+    case "Home": goto(0); break;
+    case "End": goto(deck.slides.length-1); break;
+    case "e": case "E": setMode(mode==="edit"?"present":"edit"); break;
+    case "f": case "F": toggleFs(); break;
+    case "o": case "O": openOverview(); break;
+    case "Escape": if(selId){selId=null;renderStage();renderProps();} break;
+    case "Delete": case "Backspace": if(mode==="edit"&&selId){elAction("del");e.preventDefault();} break;
+  }
+});
+
+/* ---------- Init ---------- */
+loadDeck();
+renderAddRow();
+setMode("present");
+</script>
+</body>
+</html>

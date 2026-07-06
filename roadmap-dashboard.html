@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entwicklungs-Roadmap · Dashboard 2026–2028</title>
+<style>
+  :root{
+    --bg:#0e1421; --panel:#162133; --panel2:#1d2a40; --line:#27374f;
+    --txt:#e6edf7; --muted:#8da2bf; --accent:#4f8cff;
+    --strengthen:#34c77b; --innovation:#3d9bff; --repair:#ff5f6d;
+    --must:#ff5f6d; --should:#ffb13d; --could:#3d9bff; --wont:#5a6b85;
+    --web:#3d9bff; --desktop:#34c77b; --wd:#a78bfa; --dw:#f0a93b;
+    --cap:#5a6b85; --plan:#4f8cff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  header{padding:22px 28px 0;}
+  h1{font-size:20px;margin:0 0 2px;font-weight:650}
+  .sub{color:var(--muted);font-size:13px}
+  .wrap{padding:18px 28px 60px;max-width:1280px;margin:0 auto}
+
+  /* year tabs */
+  .tabs{display:flex;gap:8px;margin:16px 0 4px}
+  .tab{background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    padding:8px 18px;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;
+    transition:.15s}
+  .tab:hover{color:var(--txt);border-color:#3a517a}
+  .tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* kpi cards */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:18px 0}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .kpi .v{font-size:26px;font-weight:700;letter-spacing:-.5px}
+  .kpi .l{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .kpi .s{font-size:12px;margin-top:6px}
+  .pos{color:var(--strengthen)} .neg{color:var(--repair)} .warn{color:var(--should)}
+
+  /* grid panels */
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .card h2{font-size:14px;margin:0 0 14px;font-weight:650;display:flex;align-items:center;gap:8px}
+  .card h2 .hint{color:var(--muted);font-weight:400;font-size:12px}
+  .col-4{grid-column:span 4} .col-6{grid-column:span 6}
+  .col-8{grid-column:span 8} .col-12{grid-column:span 12}
+  @media(max-width:920px){ .col-4,.col-6,.col-8{grid-column:span 12} }
+
+  /* legend */
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12.5px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .axis{fill:var(--muted);font-size:11px}
+  .glab{fill:var(--muted);font-size:11px}
+  .bar{transition:.2s}
+  .gridline{stroke:var(--line);stroke-width:1}
+  .donut-c{fill:var(--txt);font-size:26px;font-weight:700;text-anchor:middle}
+  .donut-s{fill:var(--muted);font-size:11px;text-anchor:middle}
+
+  /* table */
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+  .toolbar input,.toolbar select{background:var(--panel2);border:1px solid var(--line);
+    color:var(--txt);border-radius:9px;padding:7px 11px;font-size:13px;outline:none}
+  .toolbar input{min-width:220px;flex:1}
+  .toolbar input::placeholder{color:var(--muted)}
+  .chip{padding:6px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);
+    color:var(--muted);cursor:pointer;font-size:12.5px;font-weight:600}
+  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12px;position:sticky;top:0;background:var(--panel)}
+  tbody tr:hover{background:var(--panel2)}
+  .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600;white-space:nowrap}
+  .b-q{background:#23324c;color:#adc3e8}
+  .b-size{background:#2a2140;color:#cbb8ff}
+  .tcount{color:var(--muted);font-weight:400;font-size:12px;margin-left:8px}
+  .empty{color:var(--muted);padding:24px 4px;text-align:center}
+  footer{color:var(--muted);font-size:12px;margin-top:30px;border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Entwicklungs-Roadmap · Dashboard</h1>
+  <div class="sub">Quelle: <code>Entwicklungs_Roadmap_2026-2028.xlsx</code> · Value 🟢 Strengthen · 🔵 Innovation · 🔴 Repair</div>
+</header>
+
+<div class="wrap">
+  <div class="tabs" id="tabs"></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid">
+    <div class="card col-4">
+      <h2>Value-Verteilung <span class="hint">Jahr</span></h2>
+      <div id="valueDonut"></div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--strengthen)"></i>Strengthen</span>
+        <span><i class="dot" style="background:var(--innovation)"></i>Innovation</span>
+        <span><i class="dot" style="background:var(--repair)"></i>Repair</span>
+      </div>
+    </div>
+
+    <div class="card col-8">
+      <h2>Value-Buckets <span class="hint">Projekte pro Quartal</span></h2>
+      <div id="valueBars"></div>
+    </div>
+
+    <div class="card col-6">
+      <h2>Kapazität vs. geplante Stunden <span class="hint">pro Quartal</span></h2>
+      <div id="capBars"></div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--cap)"></i>Kapazität</span>
+        <span><i class="dot" style="background:var(--plan)"></i>Geplant</span>
+      </div>
+    </div>
+
+    <div class="card col-6">
+      <h2>MoSCoW <span class="hint">Priorität pro Quartal</span></h2>
+      <div id="moscowBars"></div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--must)"></i>Must</span>
+        <span><i class="dot" style="background:var(--should)"></i>Should</span>
+        <span><i class="dot" style="background:var(--could)"></i>Could</span>
+        <span><i class="dot" style="background:var(--wont)"></i>Won't</span>
+      </div>
+    </div>
+
+    <div class="card col-12">
+      <h2>Team-Zuweisung <span class="hint">Stunden pro Quartal · W→D / D→W je 50% auf beide Teams</span></h2>
+      <div id="teamBars"></div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--web)"></i>WEB</span>
+        <span><i class="dot" style="background:var(--desktop)"></i>Desktop</span>
+        <span><i class="dot" style="background:var(--wd)"></i>W→D</span>
+        <span><i class="dot" style="background:var(--dw)"></i>D→W</span>
+      </div>
+    </div>
+
+    <div class="card col-12">
+      <h2>Projekte <span class="hint" id="projHint"></span></h2>
+      <div class="toolbar">
+        <input id="search" placeholder="Projekt suchen …">
+        <span class="chip active" data-q="all">Alle</span>
+        <span class="chip" data-q="Q1">Q1</span>
+        <span class="chip" data-q="Q2">Q2</span>
+        <span class="chip" data-q="Q3">Q3</span>
+        <span class="chip" data-q="Q4">Q4</span>
+      </div>
+      <div style="max-height:520px;overflow:auto">
+        <table>
+          <thead><tr><th style="width:70px">Quartal</th><th>Projekt</th><th style="width:120px">Größe</th><th style="width:120px">Value</th></tr></thead>
+          <tbody id="projBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Statisches Snapshot-Dashboard · Daten eingebettet aus der Excel-Mappe.
+    Zum Aktualisieren das Skript <code>regen_dashboard.py</code> erneut ausführen.
+  </footer>
+</div>
+
+<script>
+/* === Eingebettete Daten (aus Entwicklungs_Roadmap_2026-2028.xlsx) === */
+const DATA = {"2026":{"value":{"Strengthen":[0,7,16,11,34],"Innovation":[0,1,5,5,11],"Repair":[0,6,3,1,10]},"totalProjects":[0,14,24,17,55],"capTotal":[0,0,1192,0],"capDesktop":[0,0,608,0],"capWeb":[0,0,688,0],"planTotal":[0,660,1269,0],"effDesktop":[0,444,543,0],"effWeb":[0,216,726,0],"moscow":{"Must":[0,11,12,1,24],"Should":[0,2,10,3,15],"Could":[0,1,2,1,4],"Won't":[0,0,0,0,0]},"team":{"WEB":[0,216,672,0,888],"Desktop":[0,444,489,0,933],"W->D":[0,0,78,0,78],"D->W":[0,0,30,0,30]},"poBacklog":[0,0,2,2,4],"projects":{"Q1":[],"Q2":[{"t":"Apple iOS SDK Anforderungen","s":"XL (>40h)","v":"Repair"},{"t":"mobilePeople.de - Vulnerabilitys Portal Live","s":"XL (>40h)","v":"Repair"},{"t":"Webshop mit Newsletter Zustimmung","s":"M (10-20h)","v":"Strengthen"},{"t":"Ticketshop mit Kalender & Anzahl","s":"M (10-20h)","v":"Strengthen"},{"t":"Optimierung SOT Sync","s":"L (20-40h)","v":"Repair"},{"t":"UHD | AI Agent - Support","s":"L (20-40h)","v":"Strengthen"},{"t":"3rd Party - Google Log In für APP","s":"M (10-20h)","v":"Repair"},{"t":"SIG#156 Landingpage -> Bonuspunkte anzeigen","s":"M (10-20h)","v":"Strengthen"},{"t":"iCoupon","s":"M (10-20h)","v":"Strengthen"},{"t":"Supportreduzierung: / Kontingent definieren","s":"XXL (>160h)","v":"Repair"},{"t":"Actian Umstellung","s":"XXL (>160h)","v":"Repair"},{"t":"ePOS mobile PRO V1","s":"XL (>40h)","v":"Innovation"},{"t":"Artikel-Tabellenbearbeitung auch Bilder (Shop) hinzufügen","s":"M (10-20h)","v":"Strengthen"},{"t":"DSFinV-K: Verknüpfung von Bestellsignaturen","s":"L (20-40h)","v":"Strengthen"}],"Q3":[{"t":"GitHub - Umstellung","s":"L (20-40h)","v":"Strengthen"},{"t":"EFSTA - Anbindung (Spanien)","s":"L (20-40h)","v":"Strengthen"},{"t":"DSFinV-K |  Startdatum der ersten Buchung","s":"M (10-20h)","v":"Repair"},{"t":"Webhook Deliverect","s":"L (20-40h)","v":"Strengthen"},{"t":"MwSt. Verteilung","s":"XXL (>160h)","v":"Strengthen"},{"t":"Protokollierung bei Lizenzzuweisungen. (Internal Audit)","s":"XL (>40h)","v":"Repair"},{"t":"Trinkgeldentnahme signieren (ALEX-GRUPPE)","s":"L (20-40h)","v":"Strengthen"},{"t":"ePOS mobilePRO","s":"XXL (>160h)","v":"Strengthen"},{"t":"SOT/Webshop & POS | Grundlage / Basis der Kundenkarte QR-Code zur Identifikation","s":"XL (>40h)","v":"Innovation"},{"t":"Benefits am SOT einlösen","s":"L (20-40h)","v":"Strengthen"},{"t":"UHD | Rechnungsstellung in CHF","s":"L (20-40h)","v":"Strengthen"},{"t":"UHD | Filtermöglichkeit für „Priorisierung“","s":"L (20-40h)","v":"Strengthen"},{"t":"UHD | Bearbeiter ergänzen / anzeigen","s":"L (20-40h)","v":"Strengthen"},{"t":"UHD | S, M, L im UH sichtbar/Filterbar. (Kritisch, Wichtig und Normal -> sichtbar)","s":"L (20-40h)","v":"Strengthen"},{"t":"Loaylty | Bonussystem 2.0","s":"XXL (>160h)","v":"Innovation"},{"t":"Wallet-Anbindung iOS & Android | Web Gutscheine und Tickets","s":"XL (>40h)","v":"Innovation"},{"t":"API | Externer Kundenstamm","s":"L (20-40h)","v":"Strengthen"},{"t":"TWINT / Konstantin / HILTL","s":"M (10-20h)","v":"Repair"},{"t":"OpenTable API","s":"M (10-20h)","v":"Innovation"},{"t":"UHD | Incident Feedback an Kunde","s":"L (20-40h)","v":"Strengthen"},{"t":"HeyRosi -> API","s":"M (10-20h)","v":"Innovation"},{"t":"Landingpage zur Registrierung","s":"M (10-20h)","v":"Strengthen"},{"t":"UI / Code - Portalmodernisierung | Benutzer","s":"XXL (>160h)","v":"Strengthen"},{"t":"Einmal einlösbare Coupons für die YourApp","s":"XL (>40h)","v":"Strengthen"},{"t":"KI-Prompt-Interface für den Desktop-UHD. Eventuell mittels \"MCP\"","s":"","v":""},{"t":"Touchpoint-Lizensierung","s":"","v":""}],"Q4":[{"t":"ReFund Zahlung POS | Refund bei Adyen | Pfand-Gutschrift bei Kartenzahlung","s":"","v":""},{"t":"Abholmonitor (ggf. extern) | API","s":"","v":""},{"t":"Portal & POS - UX Update (1)","s":"","v":""},{"t":"Artikelbestandteile im eCom abwählen","s":"","v":""},{"t":"KPI Dashboard mit KI","s":"","v":""},{"t":"Loyalty (4) | DataWarehouse und KI NOCH NICHT GEPLANT","s":"","v":""},{"t":"Jouney Gaps  (3)","s":"","v":""},{"t":"Artikelgenaue Übergabe an PMS-Interface (MEWS)","s":"","v":"Strengthen"},{"t":"ePOS Campaigns","s":"","v":"Repair"},{"t":"Deaktivierung von Order Channel an POS","s":"","v":"Innovation"},{"t":"Accounting in YourAPP","s":"","v":"Innovation"},{"t":"Signum Orga-Soft API erweitern","s":"","v":"Strengthen"},{"t":"Loyalty (3) | Couopons 2.0 NOCH NICHT GEPLANT","s":"","v":"Innovation"},{"t":"Data Warehouse","s":"","v":"Strengthen"},{"t":"Paypal V2","s":"","v":"Strengthen"},{"t":"App-Systemstart beschleunigen / Code aktualisieren","s":"","v":"Strengthen"},{"t":"SIG - WAWI - Schnittstelle (Foodnotify / Apicbase) -> CDS & Vapiano","s":"","v":"Innovation"},{"t":"NoCOO Code am SOT mit optionalem Ausdruck / weitere Informationen müssen ergänzt werden (Superhelden, etc.) -> Bewerten Q3","s":"","v":"Strengthen"},{"t":"Borland Code Migrieren in Visual Studio - bis Q4 muss das umgesetzt werden","s":"","v":"Strengthen"},{"t":"64 Bit Konvertierung","s":"","v":"Strengthen"},{"t":"Webshop und erweiterte Zeitsteuerung (Artikel nicht verfügbar, bei Bestellung morgens für Mittags) -> CDS","s":"","v":"Strengthen"},{"t":"Digital Signage (Api)","s":"","v":"Innovation"},{"t":"2-Faktor-Authentifizierung / Portal","s":"","v":"Strengthen"},{"t":"UHD - RMA Digitalisieren","s":"","v":"Strengthen"},{"t":"MobileEntry in das ePOS mobilePRO integrieren","s":"","v":""},{"t":"Andorid Anforderungen","s":"","v":""},{"t":"Widerruf im Onlineshop (Pflicht ab 19.06.2026)","s":"","v":""}]}},"2027":{"value":{"Strengthen":[3,0,0,0,3],"Innovation":[2,0,0,0,2],"Repair":[1,0,0,0,1]},"totalProjects":[6,0,0,0,6],"capTotal":[0,0,0,0],"capDesktop":[0,0,0,0],"capWeb":[0,0,0,0],"planTotal":[168,0,0,0],"effDesktop":[0,0,0,0],"effWeb":[0,0,0,0],"moscow":{"Must":[0,0,0,0,0],"Should":[6,0,0,0,6],"Could":[0,0,0,0,0],"Won't":[0,0,0,0,0]},"team":{"WEB":[0,0,0,0,0],"Desktop":[0,0,0,0,0],"W->D":[0,0,0,0,0],"D->W":[0,0,0,0,0]},"poBacklog":[0,0,0,0,0],"projects":{"Q1":[{"t":"Artikelbestandteile im eCom abwählen","s":"","v":"Innovation"},{"t":"Neue Oracle Cloud- Schnittstelle auf Artikelebene","s":"","v":"Strengthen"},{"t":"Adyen Finance Plattform (AFP)","s":"","v":"Innovation"},{"t":"Apaleo PMS","s":"","v":"Strengthen"},{"t":"ASA PMS | Artikelgenau XML-Schnittstelle / Protel?","s":"","v":"Strengthen"},{"t":"SOT Nach Verkaustelle (Statt HypCusNr) Optional","s":"XXL (>160h)","v":"Repair"}],"Q2":[],"Q3":[],"Q4":[]}},"2028":{"value":{"Strengthen":[0,0,0,0,0],"Innovation":[0,0,0,0,0],"Repair":[0,0,0,0,0]},"totalProjects":[0,0,0,0,0],"capTotal":[400,360,320,360],"capDesktop":[200,176,160,176],"capWeb":[200,176,160,176],"planTotal":[0,0,0,0],"effDesktop":[0,0,0,0],"effWeb":[0,0,0,0],"moscow":{"Must":[0,0,0,0,0],"Should":[0,0,0,0,0],"Could":[0,0,0,0,0],"Won't":[0,0,0,0,0]},"team":{"WEB":[0,0,0,0,0],"Desktop":[0,0,0,0,0],"W->D":[0,0,0,0,0],"D->W":[0,0,0,0,0]},"poBacklog":[0,0,0,0,0],"projects":{"Q1":[],"Q2":[],"Q3":[],"Q4":[]}}};
+const Qs = ["Q1","Q2","Q3","Q4"];
+const VAL_COLORS = {Strengthen:"var(--strengthen)",Innovation:"var(--innovation)",Repair:"var(--repair)"};
+const MOS_COLORS = {Must:"var(--must)",Should:"var(--should)",Could:"var(--could)","Won't":"var(--wont)"};
+const TEAM_COLORS = {WEB:"var(--web)",Desktop:"var(--desktop)","W->D":"var(--wd)","D->W":"var(--dw)"};
+const fmt = n => Math.round(n).toLocaleString("de-DE");
+
+let YEAR = 2026, QFILTER = "all";
+
+/* ---------- KPI ---------- */
+function renderKpis(d){
+  const proj = d.totalProjects[4];
+  const planYear = d.planTotal.reduce((a,b)=>a+b,0);
+  const capYear = d.capTotal.reduce((a,b)=>a+b,0);
+  const util = capYear ? planYear/capYear : 0;
+  const po = d.poBacklog[4]||d.poBacklog.reduce((a,b)=>a+b,0);
+  const cards = [
+    {v:fmt(proj), l:"Projekte geplant"},
+    {v:fmt(planYear)+" h", l:"Geplante Stunden", s:(planYear/8|0)+" PT"},
+    {v:capYear?fmt(capYear)+" h":"—", l:"Kapazität (erfasst)"},
+    {v:capYear?Math.round(util*100)+" %":"—", l:"Auslastung",
+      cls: util>1?"neg":util>0.85?"warn":"pos",
+      s: capYear? (util>1?"überbucht":"im Rahmen"):""},
+    {v:fmt(po), l:"aus PO-Backlog"},
+  ];
+  document.getElementById("kpis").innerHTML = cards.map(c=>`
+    <div class="kpi"><div class="v ${c.cls||""}">${c.v}</div>
+    <div class="l">${c.l}</div>${c.s?`<div class="s ${c.cls||"muted"}">${c.s}</div>`:""}</div>`).join("");
+}
+
+/* ---------- Donut ---------- */
+function donut(el, parts){
+  const total = parts.reduce((a,p)=>a+p.value,0);
+  const R=70,r=44,cx=90,cy=90;
+  let ang=-Math.PI/2, segs="";
+  if(total===0){ segs=`<circle cx="${cx}" cy="${cy}" r="${(R+r)/2}" fill="none" stroke="var(--line)" stroke-width="${R-r}"/>`; }
+  parts.forEach(p=>{
+    if(!p.value) return;
+    const a2=ang+p.value/total*2*Math.PI;
+    const big=(a2-ang)>Math.PI?1:0;
+    const x1=cx+R*Math.cos(ang),y1=cy+R*Math.sin(ang),x2=cx+R*Math.cos(a2),y2=cy+R*Math.sin(a2);
+    const xi=cx+r*Math.cos(a2),yi=cy+r*Math.sin(a2),xi2=cx+r*Math.cos(ang),yi2=cy+r*Math.sin(ang);
+    segs+=`<path d="M${x1} ${y1} A${R} ${R} 0 ${big} 1 ${x2} ${y2} L${xi} ${yi} A${r} ${r} 0 ${big} 0 ${xi2} ${yi2} Z" fill="${p.color}"><title>${p.label}: ${p.value}</title></path>`;
+    ang=a2;
+  });
+  el.innerHTML=`<svg viewBox="0 0 180 180" style="max-width:200px;margin:0 auto">
+    ${segs}<text class="donut-c" x="${cx}" y="${cy-2}">${total}</text>
+    <text class="donut-s" x="${cx}" y="${cy+16}">Projekte</text></svg>`;
+}
+
+/* ---------- Bars (grouped or stacked) ---------- */
+function barChart(el, opts){
+  // opts: groups [{label, segs:[{value,color,name}]}], stacked bool
+  const W=620,H=240,padL=44,padB=28,padT=10,padR=8;
+  const gw=W-padL-padR, gh=H-padT-padB;
+  const groups=opts.groups;
+  let max=0;
+  groups.forEach(g=>{
+    if(opts.stacked){ max=Math.max(max, g.segs.reduce((a,s)=>a+s.value,0)); }
+    else { g.segs.forEach(s=>max=Math.max(max,s.value)); }
+  });
+  max = max||1;
+  const ticks=4, niceMax=Math.ceil(max/ticks)*ticks||4;
+  const y = v => padT+gh - v/niceMax*gh;
+  const bw = gw/groups.length;
+  let g="";
+  // gridlines + y labels
+  for(let i=0;i<=ticks;i++){
+    const val=niceMax/ticks*i, yy=y(val);
+    g+=`<line class="gridline" x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}"/>`;
+    g+=`<text class="axis" x="${padL-6}" y="${yy+3}" text-anchor="end">${fmt(val)}</text>`;
+  }
+  groups.forEach((grp,gi)=>{
+    const x0=padL+gi*bw;
+    const segs=grp.segs.filter(s=>s.value>0);
+    if(opts.stacked){
+      const innerW=Math.min(46,bw*0.5), bx=x0+(bw-innerW)/2;
+      let acc=0;
+      segs.forEach(s=>{
+        const h=s.value/niceMax*gh, yy=y(acc+s.value);
+        g+=`<rect class="bar" x="${bx}" y="${yy}" width="${innerW}" height="${h}" fill="${s.color}" rx="2"><title>${s.name}: ${fmt(s.value)}</title></rect>`;
+        acc+=s.value;
+      });
+    } else {
+      const n=grp.segs.length, gap=4, innerW=Math.min(60,(bw*0.62-gap*(n-1))/n);
+      const tot=innerW*n+gap*(n-1), bx0=x0+(bw-tot)/2;
+      grp.segs.forEach((s,si)=>{
+        const h=s.value/niceMax*gh, yy=y(s.value), bx=bx0+si*(innerW+gap);
+        g+=`<rect class="bar" x="${bx}" y="${yy}" width="${innerW}" height="${h}" fill="${s.color}" rx="2"><title>${s.name}: ${fmt(s.value)}</title></rect>`;
+        if(s.value>0) g+=`<text class="glab" x="${bx+innerW/2}" y="${yy-4}" text-anchor="middle">${fmt(s.value)}</text>`;
+      });
+    }
+    g+=`<text class="axis" x="${x0+bw/2}" y="${H-8}" text-anchor="middle">${grp.label}</text>`;
+  });
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
+}
+
+/* ---------- render charts ---------- */
+function renderCharts(d){
+  // value donut (year totals)
+  donut(document.getElementById("valueDonut"),[
+    {label:"Strengthen",value:d.value.Strengthen[4],color:"var(--strengthen)"},
+    {label:"Innovation",value:d.value.Innovation[4],color:"var(--innovation)"},
+    {label:"Repair",value:d.value.Repair[4],color:"var(--repair)"},
+  ]);
+  // value bars stacked per quarter
+  barChart(document.getElementById("valueBars"),{stacked:true,groups:Qs.map((q,i)=>({
+    label:q,segs:[
+      {name:"Strengthen",value:d.value.Strengthen[i],color:"var(--strengthen)"},
+      {name:"Innovation",value:d.value.Innovation[i],color:"var(--innovation)"},
+      {name:"Repair",value:d.value.Repair[i],color:"var(--repair)"},
+    ]}))});
+  // capacity vs planned grouped
+  barChart(document.getElementById("capBars"),{stacked:false,groups:Qs.map((q,i)=>({
+    label:q,segs:[
+      {name:"Kapazität",value:d.capTotal[i],color:"var(--cap)"},
+      {name:"Geplant",value:d.planTotal[i],color:"var(--plan)"},
+    ]}))});
+  // moscow stacked
+  barChart(document.getElementById("moscowBars"),{stacked:true,groups:Qs.map((q,i)=>({
+    label:q,segs:[
+      {name:"Must",value:d.moscow.Must[i],color:"var(--must)"},
+      {name:"Should",value:d.moscow.Should[i],color:"var(--should)"},
+      {name:"Could",value:d.moscow.Could[i],color:"var(--could)"},
+      {name:"Won't",value:d.moscow["Won't"][i],color:"var(--wont)"},
+    ]}))});
+  // team stacked
+  barChart(document.getElementById("teamBars"),{stacked:true,groups:Qs.map((q,i)=>({
+    label:q,segs:[
+      {name:"WEB",value:d.team.WEB[i],color:"var(--web)"},
+      {name:"Desktop",value:d.team.Desktop[i],color:"var(--desktop)"},
+      {name:"W→D",value:d.team["W->D"][i],color:"var(--wd)"},
+      {name:"D→W",value:d.team["D->W"][i],color:"var(--dw)"},
+    ]}))});
+}
+
+/* ---------- project table ---------- */
+function sizeBadge(s){ return s? `<span class="badge b-size">${s}</span>` : "<span style='color:var(--muted)'>–</span>"; }
+function valBadge(v){
+  if(!v) return "<span style='color:var(--muted)'>–</span>";
+  const c=VAL_COLORS[v]||"var(--muted)";
+  return `<span class="badge" style="background:${c}22;color:${c}">${v}</span>`;
+}
+function renderTable(d){
+  const term=(document.getElementById("search").value||"").toLowerCase();
+  let rows=[];
+  Qs.forEach(q=>{ if(QFILTER==="all"||QFILTER===q) (d.projects[q]||[]).forEach(p=>rows.push({q,...p})); });
+  if(term) rows=rows.filter(r=>r.t.toLowerCase().includes(term));
+  document.getElementById("projHint").textContent = rows.length+" Einträge";
+  const body=document.getElementById("projBody");
+  if(!rows.length){ body.innerHTML=`<tr><td colspan="4" class="empty">Keine Projekte für diese Auswahl.</td></tr>`; return; }
+  body.innerHTML=rows.map(r=>`<tr>
+    <td><span class="badge b-q">${r.q}</span></td>
+    <td>${r.t.replace(/</g,"&lt;")}</td>
+    <td>${sizeBadge(r.s)}</td>
+    <td>${valBadge(r.v)}</td></tr>`).join("");
+}
+
+/* ---------- wiring ---------- */
+function select(year){
+  YEAR=year;
+  const d=DATA[year];
+  [...document.querySelectorAll(".tab")].forEach(t=>t.classList.toggle("active",+t.dataset.y===year));
+  renderKpis(d); renderCharts(d); renderTable(d);
+}
+function init(){
+  const tabs=document.getElementById("tabs");
+  Object.keys(DATA).sort().forEach(y=>{
+    const b=document.createElement("button");
+    b.className="tab"; b.dataset.y=y; b.textContent=y;
+    b.onclick=()=>select(+y); tabs.appendChild(b);
+  });
+  document.getElementById("search").addEventListener("input",()=>renderTable(DATA[YEAR]));
+  [...document.querySelectorAll(".chip")].forEach(c=>c.onclick=()=>{
+    [...document.querySelectorAll(".chip")].forEach(x=>x.classList.remove("active"));
+    c.classList.add("active"); QFILTER=c.dataset.q; renderTable(DATA[YEAR]);
+  });
+  select(2026);
+}
+init();
+</script>
+</body>
+</html>
